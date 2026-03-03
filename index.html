@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Correspondente Bancário</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        form {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2 .emoji {
+            font-size: 1.4em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Estilo para os bancos dinâmicos */
+        .banks-container {
+            margin-top: 20px;
+        }
+
+        .bank-detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bank-detail-card h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .bank-detail-card .bank-icon {
+            font-size: 1.3em;
+        }
+
+        .bank-detail-card .remove-bank {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .bank-detail-card .remove-bank:hover {
+            background: #cc0000;
+            transform: scale(1.1);
+        }
+
+        .bank-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .bank-option-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .bank-option-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+
+        .open-field {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .open-field textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .number-input {
+            width: 80px !important;
+            display: inline-block;
+        }
+
+        hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 2px dashed #e0e0e0;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .outros-bancos-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dashed #667eea;
+        }
+
+        .outros-bancos-list {
+            margin-top: 15px;
+        }
+
+        .outro-banco-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .outro-banco-item input {
+            flex: 1;
+        }
+
+        .add-banco-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .add-banco-btn:hover {
+            background: #5a67d8;
+        }
+
+        .remove-outro-banco {
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .remove-outro-banco:hover {
+            background: #cc0000;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Diagnóstico Correspondente Bancário</h1>
+            <p>Preencha os dados abaixo para análise personalizada</p>
+        </div>
+
+        <form action="https://formsubmit.co/celsolsander@gmail.com" method="POST" id="diagnosticoForm">
+            <input type="hidden" name="_subject" value="Novo Diagnóstico - Correspondente Bancário">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_next" value="https://celsolenonsander.github.io/Formulario-Correspondente-Bancario/obrigado.html">
+
+            <!-- 1️⃣ Dados do Correspondente -->
+            <div class="section">
+                <h2><span class="emoji">🧾</span> 1️⃣ Dados do Correspondente</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nome da empresa *</label>
+                        <input type="text" name="empresa" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CNPJ *</label>
+                        <input type="text" name="cnpj" required placeholder="00.000.000/0000-00">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do responsável *</label>
+                        <input type="text" name="responsavel" required>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp *</label>
+                        <input type="tel" name="whatsapp" required placeholder="(00) 00000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail *</label>
+                        <input type="email" name="email" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2️⃣ Bancos Parceiros -->
+            <div class="section">
+                <h2><span class="emoji">🏦</span> 2️⃣ Bancos Parceiros</h2>
+                
+                <!-- Bancos pré-definidos -->
+                <div class="checkbox-group" id="bancosPredefinidos">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Banco do Brasil" class="banco-checkbox" data-banco="Banco do Brasil">
+                        <label>Banco do Brasil</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Caixa" class="banco-checkbox" data-banco="Caixa">
+                        <label>Caixa</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Itaú" class="banco-checkbox" data-banco="Itaú">
+                        <label>Itaú</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Bradesco" class="banco-checkbox" data-banco="Bradesco">
+                        <label>Bradesco</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Santander" class="banco-checkbox" data-banco="Santander">
+                        <label>Santander</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Banrisul" class="banco-checkbox" data-banco="Banrisul">
+                        <label>Banrisul</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="BMG" class="banco-checkbox" data-banco="BMG">
+                        <label>BMG</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Pan" class="banco-checkbox" data-banco="Pan">
+                        <label>Pan</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="bancos_pre[]" value="Daycoval" class="banco-checkbox" data-banco="Daycoval">
+                        <label>Daycoval</label>
+                    </div>
+                </div>
+
+                <!-- Container para bancos personalizados (Outros) -->
+                <div class="outros-bancos-container">
+                    <h4 style="margin-bottom: 15px; color: #333;">➕ Outros Bancos</h4>
+                    <div id="outrosBancosList" class="outros-bancos-list">
+                        <!-- Itens dinâmicos serão inseridos aqui -->
+                    </div>
+                    <button type="button" class="add-banco-btn" onclick="adicionarOutroBanco()">
+                        <i class="fas fa-plus"></i> Adicionar outro banco
+                    </button>
+                </div>
+
+                <!-- Container para os detalhes dos bancos selecionados -->
+                <div id="bancosDetalhesContainer" class="banks-container">
+                    <!-- Cards dinâmicos serão inseridos aqui -->
+                </div>
+                   
+                <!--<div class="warning" id="apiWarning" style="display: none;">--> 
+                <!--    ⚠️ Resposta “não sei” = 99% não tem API direta.--> 
+                <!--</div>--> 
+            </div>
+
+            <!-- 3️⃣ Como você consulta a margem hoje? -->
+            <div class="section">
+                <h2><span class="emoji">📌</span> 3️⃣ Consulta de Margem</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" name="consulta_margem[]" value="Sistema/portal do banco"> <label>Pelo sistema/portal do banco</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="consulta_margem[]" value="Portal do convênio"> <label>Pelo portal do convênio (INSS / SIAPE etc.)</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="consulta_margem[]" value="Manual"> <label>Manual (print / anotação)</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="consulta_margem[]" value="Não consulto"> <label>Não consulto, só simulo no banco</label></div>
+                </div>
+
+                <div class="sub-options" id="consultaManualOptions" style="display: none;">
+                    <p><strong>Se consulta manual:</strong></p>
+                    <div class="radio-group">
+                        <div class="radio-item"><input type="radio" name="registrar_margem" value="Sim"> <label>Gostaria de registrar a margem no sistema</label></div>
+                        <div class="radio-item"><input type="radio" name="registrar_margem" value="Não"> <label>Não</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4️⃣ Processo de proposta -->
+            <div class="section">
+                <h2><span class="emoji">💰</span> 4️⃣ Processo de proposta</h2>
+                
+                <div class="form-group">
+                    <label>Onde a proposta é criada?</label>
+                    <div class="radio-group">
+                        <div class="radio-item"><input type="radio" name="criacao_proposta" value="Sistema do banco"> <label>Sistema do banco</label></div>
+                        <div class="radio-item"><input type="radio" name="criacao_proposta" value="Planilha"> <label>Planilha</label></div>
+                        <div class="radio-item"><input type="radio" name="criacao_proposta" value="Outro sistema"> <label>Outro sistema</label></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Depois de criada, você precisa:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" name="pos_proposta[]" value="Acompanhar status"> <label>Acompanhar status</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="pos_proposta[]" value="Controlar comissão"> <label>Controlar comissão</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="pos_proposta[]" value="Guardar documentos"> <label>Guardar documentos</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="pos_proposta[]" value="Todas as opções"> <label>Todas as opções</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5️⃣ Controle interno -->
+            <div class="section">
+                <h2><span class="emoji">🔄</span> 5️⃣ Controle interno</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" name="dores[]" value="Saber qual vendedor está com qual cliente"> <label>Saber qual vendedor está com qual cliente</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="dores[]" value="Evitar duas pessoas atenderem o mesmo cliente"> <label>Evitar duas pessoas atenderem o mesmo cliente</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="dores[]" value="Controlar comissões"> <label>Controlar comissões</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="dores[]" value="Saber o status da proposta"> <label>Saber o status da proposta</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="dores[]" value="Reaproveitar clientes antigos"> <label>Reaproveitar clientes antigos</label></div>
+                </div>
+            </div>
+
+            <!-- 6️⃣ Documentos -->
+            <div class="section">
+                <h2><span class="emoji">📂</span> 6️⃣ Documentos</h2>
+                
+                <div class="form-group">
+                    <label>Você precisa guardar:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" name="documentos[]" value="Documentos do cliente"> <label>Documentos do cliente</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="documentos[]" value="Contrato do banco"> <label>Contrato do banco</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="documentos[]" value="Prints de margem"> <label>Prints de margem</label></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Precisa de:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" name="funcionalidades_doc[]" value="Assinatura digital"> <label>Assinatura digital</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="funcionalidades_doc[]" value="Upload pelo celular"> <label>Upload pelo celular</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7️⃣ Relatórios essenciais -->
+            <div class="section">
+                <h2><span class="emoji">📊</span> 7️⃣ Relatórios essenciais</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" name="relatorios[]" value="Produção por vendedor"> <label>Produção por vendedor</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="relatorios[]" value="Comissão"> <label>Comissão</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="relatorios[]" value="Propostas pagas"> <label>Propostas pagas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="relatorios[]" value="Propostas canceladas"> <label>Propostas canceladas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="relatorios[]" value="Clientes ativos"> <label>Clientes ativos</label></div>
+                </div>
+            </div>
+
+            <!-- 8️⃣ Acesso & Segurança -->
+            <div class="section">
+                <h2><span class="emoji">🔐</span> 8️⃣ Acesso & Segurança</h2>
+                
+                <div class="form-group">
+                    <label>Quantas pessoas vão usar o sistema?</label>
+                    <input type="number" name="quantidade_usuarios" class="number-input" min="1" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Precisa separar acesso por vendedor?</label>
+                    <div class="radio-group">
+                        <div class="radio-item"><input type="radio" name="acesso_por_vendedor" value="Sim"> <label>Sim</label></div>
+                        <div class="radio-item"><input type="radio" name="acesso_por_vendedor" value="Não"> <label>Não</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9️⃣ Expectativa com o sistema -->
+            <div class="section">
+                <h2><span class="emoji">🎯</span> 9️⃣ Expectativa com o sistema</h2>
+                
+                <div class="checkbox-group">
+                    <div class="checkbox-item"><input type="checkbox" name="expectativas[]" value="Organizar a operação"> <label>Organizar a operação</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="expectativas[]" value="Crescer volume"> <label>Crescer volume</label></div>
+                    <div class="checkbox-item"><input type="checkbox" name="expectativas[]" value="Reduzir erros"> <label>Reduzir erros</label></div>
+                </div>
+
+                <div class="open-field">
+                    <label><strong>O que NÃO pode faltar no sistema?</strong></label>
+                    <textarea name="nao_pode_faltar" placeholder="Descreva os recursos essenciais..."></textarea>
+                </div>
+            </div>
+
+            <!-- 🧠 Pergunta-chave -->
+            <div class="section">
+                <h2><span class="emoji">🧠</span> Pergunta-chave</h2>
+                
+                <div class="open-field">
+                    <label><strong>Hoje, o que mais te faz perder dinheiro ou tempo na operação?</strong></label>
+                    <textarea name="perde_dinheiro_tempo" placeholder="Descreva suas maiores dores..." required></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">📨 Enviar Diagnóstico</button>
+            
+            <div class="footer-note">
+                * Campos obrigatórios • Seus dados estão seguros
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Array para controlar os bancos personalizados
+        let outrosBancos = [];
+        let contadorOutrosBancos = 0;
+
+        // Função para mostrar/esconder opções de consulta manual
+        document.querySelectorAll('input[name="consulta_margem[]"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const consultaManual = document.querySelector('input[name="consulta_margem[]"][value="Manual"]');
+                const manualOptions = document.getElementById('consultaManualOptions');
+                
+                if (consultaManual && consultaManual.checked) {
+                    manualOptions.style.display = 'block';
+                } else {
+                    manualOptions.style.display = 'none';
+                }
+            });
+        });
+
+        // Função para adicionar um novo banco personalizado
+        function adicionarOutroBanco() {
+            contadorOutrosBancos++;
+            const id = `outro_banco_${contadorOutrosBancos}`;
+            
+            const div = document.createElement('div');
+            div.className = 'outro-banco-item';
+            div.id = id;
+            div.innerHTML = `
+                <input type="text" name="outros_bancos[]" placeholder="Nome do banco" onchange="adicionarBancoPersonalizado(this.value, '${id}')">
+                <button type="button" class="remove-outro-banco" onclick="removerOutroBanco('${id}')">✕</button>
+            `;
+            
+            document.getElementById('outrosBancosList').appendChild(div);
+        }
+
+        // Função para remover um banco personalizado
+        function removerOutroBanco(id) {
+            const elemento = document.getElementById(id);
+            const input = elemento.querySelector('input');
+            const nomeBanco = input.value;
+            
+            // Remove o card de detalhes se existir
+            if (nomeBanco) {
+                const cardId = `banco_${nomeBanco.replace(/\s+/g, '_')}`;
+                const card = document.getElementById(cardId);
+                if (card) {
+                    card.remove();
+                }
+            }
+            
+            elemento.remove();
+            verificarWarning();
+        }
+
+        // Função para adicionar banco personalizado quando digitar
+        function adicionarBancoPersonalizado(nomeBanco, elementoId) {
+            if (nomeBanco && nomeBanco.trim() !== '') {
+                const nomeFormatado = nomeBanco.trim();
+                const bancoId = `banco_${nomeFormatado.replace(/\s+/g, '_')}`;
+                
+                // Verifica se já não existe um card para este banco
+                if (!document.getElementById(bancoId)) {
+                    adicionarCardBanco(nomeFormatado, bancoId);
+                }
+            }
+        }
+
+        // Função para criar o card de detalhes do banco
+        function criarCardBanco(nomeBanco, bancoId) {
+            return `
+                <div class="bank-detail-card" id="${bancoId}">
+                    <button type="button" class="remove-bank" onclick="removerBanco('${bancoId}', '${nomeBanco}')">✕</button>
+                    <h4>
+                        <span class="bank-icon">🏦</span>
+                        ${nomeBanco}
+                    </h4>
+                    
+                    <div class="bank-options">
+                        <div class="bank-option-group">
+                            <label>Existe portal ou sistema próprio do banco?</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="portal_${bancoId}" value="Sim" onchange="atualizarPortal('${bancoId}', 'Sim')"> 
+                                    <label>Sim</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="portal_${bancoId}" value="Não" onchange="atualizarPortal('${bancoId}', 'Não')"> 
+                                    <label>Não</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bank-option-group">
+                            <label>O banco oferece API ou integração?</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="api_${bancoId}" value="Sim" onchange="atualizarAPI('${bancoId}', 'Sim')"> 
+                                    <label>Sim</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="api_${bancoId}" value="Não" onchange="atualizarAPI('${bancoId}', 'Não')"> 
+                                    <label>Não</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="api_${bancoId}" value="Não sei" onchange="atualizarAPI('${bancoId}', 'Não sei')"> 
+                                    <label>Não sei</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campos ocultos para envio do formulário -->
+                    <input type="hidden" name="bancos_detalhes[${nomeBanco}][portal]" class="portal-hidden" value="">
+                    <input type="hidden" name="bancos_detalhes[${nomeBanco}][api]" class="api-hidden" value="">
+                </div>
+            `;
+        }
+
+        // Função para adicionar card de banco
+        function adicionarCardBanco(nomeBanco, bancoId) {
+            const container = document.getElementById('bancosDetalhesContainer');
+            container.insertAdjacentHTML('beforeend', criarCardBanco(nomeBanco, bancoId));
+            verificarWarning();
+        }
+
+        // Função para remover banco
+        function removerBanco(bancoId, nomeBanco) {
+            // Remove o card
+            document.getElementById(bancoId).remove();
+            
+            // Desmarca o checkbox correspondente se for banco pré-definido
+            const checkbox = document.querySelector(`.banco-checkbox[data-banco="${nomeBanco}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            
+            // Remove dos bancos personalizados se for o caso
+            if (!checkbox) {
+                // Procura e remove o input de outro banco correspondente
+                const outrosInputs = document.querySelectorAll('input[name="outros_bancos[]"]');
+                outrosInputs.forEach(input => {
+                    if (input.value === nomeBanco) {
+                        const item = input.closest('.outro-banco-item');
+                        if (item) item.remove();
+                    }
+                });
+            }
+            
+            verificarWarning();
+        }
+
+        // Funções para atualizar os campos ocultos
+        function atualizarPortal(bancoId, valor) {
+            const card = document.getElementById(bancoId);
+            card.querySelector('.portal-hidden').value = valor;
+        }
+
+        function atualizarAPI(bancoId, valor) {
+            const card = document.getElementById(bancoId);
+            card.querySelector('.api-hidden').value = valor;
+            
+            // Mostra warning se alguma API for "Não sei"
+            verificarWarning();
+        }
+
+        // Função para verificar se deve mostrar o warning
+        function verificarWarning() {
+            const apiNaoSei = document.querySelectorAll('input[type="radio"][value="Não sei"]:checked');
+            const warning = document.getElementById('apiWarning');
+            
+            if (apiNaoSei.length > 0) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        // Event listeners para checkboxes de bancos pré-definidos
+        document.querySelectorAll('.banco-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const nomeBanco = this.dataset.banco;
+                const bancoId = `banco_${nomeBanco.replace(/\s+/g, '_')}`;
+                
+                if (this.checked) {
+                    // Adiciona card se não existir
+                    if (!document.getElementById(bancoId)) {
+                        adicionarCardBanco(nomeBanco, bancoId);
+                    }
+                } else {
+                    // Remove card se existir
+                    const card = document.getElementById(bancoId);
+                    if (card) {
+                        card.remove();
+                    }
+                }
+                verificarWarning();
+            });
+        });
+
+        // Validação antes do envio
+        document.getElementById('diagnosticoForm').addEventListener('submit', function(e) {
+            // Verifica se pelo menos um banco foi selecionado
+            const bancosSelecionados = document.querySelectorAll('.banco-checkbox:checked').length;
+            const outrosBancosInputs = document.querySelectorAll('input[name="outros_bancos[]"]');
+            const outrosBancosPreenchidos = Array.from(outrosBancosInputs).filter(input => input.value.trim() !== '').length;
+            
+            if (bancosSelecionados === 0 && outrosBancosPreenchidos === 0) {
+                e.preventDefault();
+                alert('Por favor, selecione pelo menos um banco parceiro ou adicione um banco personalizado.');
+                return;
+            }
+            
+            // Verifica se preencheu os detalhes para os bancos selecionados
+            const cardsBancos = document.querySelectorAll('.bank-detail-card');
+            for (let card of cardsBancos) {
+                const portalValue = card.querySelector('.portal-hidden').value;
+                const apiValue = card.querySelector('.api-hidden').value;
+                
+                if (!portalValue || !apiValue) {
+                    e.preventDefault();
+                    const nomeBanco = card.querySelector('h4').textContent.trim();
+                    alert(`Por favor, preencha todas as informações para o banco: ${nomeBanco}`);
+                    return;
+                }
+            }
+        });
+    </script>
+
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>
